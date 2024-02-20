@@ -14,4 +14,6 @@ class SOLITUDEPROJECT_API ABaseHUD : public AHUD
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void DrawHUD() override;
 };

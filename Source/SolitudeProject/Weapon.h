@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WeaponTypes.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -21,6 +22,8 @@ class USkeletalMeshComponent;
 class USphereComponent;
 class UWidgetComponent;
 class AProjectile;
+class UParticleSystem;
+class USoundCue;
 
 UCLASS()
 class SOLITUDEPROJECT_API AWeapon : public AActor
@@ -44,11 +47,28 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	UWidgetComponent* PickupWidget = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
 	TSubclassOf<AProjectile> ProjectileClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	class UAnimationAsset* FireAnimation = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	UParticleSystem* MuzzlePartical = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	USoundCue* ShootSound = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
 	float MuzzleScatter = 0.f;
+
+	int32 Ammo = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	int32 MagCapasity = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	EWeaponType WeaponType;
 
 protected:
 	// Called when the game starts or when spawned
@@ -61,6 +81,14 @@ protected:
 	virtual void OnEndSphereOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:	
+	bool bAiming = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+		bool bAutomatic = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+		float FireDelay = 0.f;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -70,7 +98,14 @@ public:
 
 	void Shoot(const FVector& HitTarget);
 
-	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; };
+	void Dropped();
 
-	bool bAiming = false;
+	void SpendAmmo();
+
+	bool IsEmpty();
+
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	//FORCEINLINE bool IsPistol() const { return bPistol; }
+
 };

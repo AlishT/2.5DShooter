@@ -47,6 +47,9 @@ protected:
 	class UInputAction* WeaponEquipAction = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
+	class UInputAction* DroppedWeaponAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputAction* FireAction = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
@@ -54,6 +57,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputAction* SprintAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
+	class UInputAction* ReloadAction = nullptr;
 
 	AWeapon* PickapedWeapom = nullptr;
 
@@ -71,6 +77,8 @@ protected:
 	UFUNCTION()
 	void EquipWeapon();
 	UFUNCTION()
+	void DroppedWeapon();
+	UFUNCTION()
 	void Fire();
 	UFUNCTION()
 	void Aiming();
@@ -78,6 +86,8 @@ protected:
 	void Sprint();
 	UFUNCTION()
 	void ToJump();
+	UFUNCTION()
+	void Reload();
 	
 	UFUNCTION()
 	void RotateCharacter();

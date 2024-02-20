@@ -57,8 +57,9 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DealtaTime)
 
 		EquippedWeapon = BaseCharacter->GetEquippedWeapon();
 
-		if (bWeaponEquipped && EquippedWeapon) 
+		if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && BaseCharacter->GetMesh()) 
 		{
+			//FABRIK
 			LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocked"), ERelativeTransformSpace::RTS_World);
 			FVector OutPosition;
 			FRotator OutRotation;

@@ -24,11 +24,13 @@ public:
 
 protected:
 	
+	UPROPERTY(EditAnywhere, Category = "Default")
 	float MaxHealth = 100.f;
 
 	float CurrentHealth = 0.f;
-
-	float MaxArmor = 100.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Default")
+	float MaxArmor = 0.f;
 
 	float CurrentArmor = 0.f;
 
@@ -40,9 +42,9 @@ protected:
 
 public:	
 
-	float GetMaxHealth() const;
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; };
 
-	float GetMaxArmor() const;
+	FORCEINLINE float GetMaxArmor() const { return MaxArmor; };
 
 	UFUNCTION()
 	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigateBy, AActor* DamageCauser);

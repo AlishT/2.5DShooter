@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "TimerManager.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -29,7 +30,6 @@ void UCombatComponent::BeginPlay()
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	}
 }
-
 
 // Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -56,6 +56,15 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetOwner(Character);
 }
 
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmo > 0)
+	{
+		if (!Character) return;
+		Character->PlayReloadMontage();
+	}
+}
+
 void UCombatComponent::SetAiming(const bool bIsAiming)
 {
 	bAiming = bIsAiming;
@@ -71,10 +80,34 @@ bool UCombatComponent::GetAiming() const
 	return bAiming;
 }
 
-void UCombatComponent::Fire(const FVector& HitTarget)
+void UCombatComponent::Fire()
 {
-	if (!EquippedWeapon) return;
-	
-	EquippedWeapon->Shoot(HitTarget);
+	if (EquippedWeapon->bAutomatic)
+	{
+		if (bCanFire && !EquippedWeapon->IsEmpty())
+		{
+			bCanFire = false;
+
+			StartFireTimer();
+		}
+	}
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (!EquippedWeapon && !Character) return;
+
+	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &UCombatComponent::FireTimerFinished, EquippedWeapon->FireDelay);
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	bCanFire = true;
+
+	if (EquippedWeapon->bAutomatic)
+	{
+		EquippedWeapon->Shoot(Character->GetHitTarget());
+	}
+
 }
 

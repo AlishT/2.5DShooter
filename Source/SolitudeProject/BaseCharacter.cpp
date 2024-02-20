@@ -7,7 +7,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Weapon.h"
+#include "Components/CapsuleComponent.h"
+#include "SolitudeProject.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -20,8 +23,13 @@ ABaseCharacter::ABaseCharacter()
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ABaseCharacter::HealthChanged);
 
-	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	/*GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);*/
+
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	if (Movement)
 	{
 		Movement->bConstrainToPlane = true;
@@ -40,6 +48,16 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//AimOffset(DeltaTime);
+
+	if (bEliminated)
+	{
+		CurrentTime += DeltaTime;
+
+		if (CurrentTime >= BodyLifeTime)
+		{
+			Destroy();
+		}
+	}
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -55,7 +73,19 @@ void ABaseCharacter::HealthChanged(float Health, float Armor)
 		return;
 	}
 
-	Destroy();
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Dropped();
+	}
+
+	bEliminated = true;
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetMesh()->PlayAnimation(EliminatedAnim, false);
+	//GetMesh()->SetSimulatePhysics(true);
+	
+
 }
 
 bool ABaseCharacter::IsWeaponEquipeed()
@@ -78,6 +108,42 @@ void ABaseCharacter::PlayFireMontage(bool bAiming)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
 		FName SectionName = (bAiming) ? FName("RifleAim") : FName("HipAim");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABaseCharacter::PlayReloadMontage()
+{
+	if (!CombatComponent && !ReloadMontage) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+
+		switch (CombatComponent->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
+		
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABaseCharacter::PlayHitReactMontage()
+{
+	if (!CombatComponent && !HitReactMontage) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName = FName("FromFromt");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }

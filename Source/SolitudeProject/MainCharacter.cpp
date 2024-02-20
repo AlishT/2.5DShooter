@@ -104,9 +104,11 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AMainCharacter::StopJumping);
 		PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AMainCharacter::Crouching);
 		PlayerEnhancedInputComponent->BindAction(WeaponEquipAction, ETriggerEvent::Triggered, this, &AMainCharacter::EquipWeapon);
+		PlayerEnhancedInputComponent->BindAction(DroppedWeaponAction, ETriggerEvent::Triggered, this, &AMainCharacter::DroppedWeapon);
 		PlayerEnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AMainCharacter::Fire);
 		PlayerEnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AMainCharacter::Aiming);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AMainCharacter::Sprint);
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AMainCharacter::Reload);
 	}
 }
 
@@ -156,11 +158,19 @@ void AMainCharacter::EquipWeapon()
 	//bEquipWeapon = bEquip;
 }
 
+void AMainCharacter::DroppedWeapon()
+{
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Dropped();
+	}
+}
+
 void AMainCharacter::Fire()
 {
 	if (IsWeaponEquipeed())
 	{
-		CombatComponent->Fire(TargetLocation);
+		CombatComponent->Fire();
 		PlayFireMontage(IsAiming());
 	}
 }
@@ -185,6 +195,14 @@ void AMainCharacter::ToJump()
 {
 	if (IsAiming()) return;
 	Jump();
+}
+
+void AMainCharacter::Reload()
+{
+	if (CombatComponent) 
+	{
+		CombatComponent->Reload();
+	}
 }
 
 void AMainCharacter::RotateCharacter()

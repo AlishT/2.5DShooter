@@ -3,3 +3,9 @@
 
 #include "BaseHUD.h"
 
+void ABaseHUD::DrawHUD()
+{
+	Super::DrawHUD();
+
+
+}

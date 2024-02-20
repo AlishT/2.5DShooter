@@ -43,6 +43,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* FireWeaponMontage = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* HitReactMontage = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ReloadMontage = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	class UAnimationAsset* EliminatedAnim = nullptr;
+
+	float CurrentTime = 0.f;
+	float BodyLifeTime = 3.0f;
+	
+	bool bEliminated = false;
+
 public:	
 
 	bool bSprinting = false;
@@ -60,9 +74,15 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 
+	void PlayReloadMontage();
+
+	void PlayHitReactMontage();
+
 	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
 	
 	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
+
+	FORCEINLINE FVector GetHitTarget() const { return TargetLocation; };
 
 	AWeapon* GetEquippedWeapon() const;
 

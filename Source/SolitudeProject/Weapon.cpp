@@ -9,6 +9,11 @@
 #include "Projectile.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "CombatComponent.h"
+#include "Animation/AnimationAsset.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -35,6 +40,7 @@ AWeapon::AWeapon()
 	PickupCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 
 	PickupCollision->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnEndSphereOverlap);
+
 }
 
 // Called when the game starts or when spawned
@@ -43,6 +49,8 @@ void AWeapon::BeginPlay()
 	Super::BeginPlay();
 	
 	ShowPickupWidget(false);
+
+	Ammo = MagCapasity;
 
 }
 
@@ -88,6 +96,15 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	case EWeaponState::EWS_Equipped:
 		ShowPickupWidget(false);
 		PickupCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		PickupCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 }
@@ -99,6 +116,21 @@ void AWeapon::Shoot(const FVector& HitTarget)
 	if (!MuzzleSocket) return;
 	
 	FTransform ProjectileTransform = MuzzleSocket->GetSocketTransform(GetWeaponMesh());
+
+	if (FireAnimation)
+	{
+		GetWeaponMesh()->PlayAnimation(FireAnimation,false);
+	}
+
+	if (MuzzlePartical)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzlePartical, MuzzleSocket->GetSocketTransform(GetWeaponMesh()));
+	}
+
+	if (ShootSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShootSound, GetActorLocation());
+	}
 
 	if (ProjectileClass)
 	{
@@ -122,6 +154,26 @@ void AWeapon::Shoot(const FVector& HitTarget)
 
 		bAiming = false;
 		UE_LOG(LogTemp, Warning, TEXT("Projctile"));
+
+		SpendAmmo();
 	}
+}
+
+void AWeapon::Dropped()
+{
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+	WeaponMesh->DetachFromComponent(DetachRules);
+	SetOwner(nullptr);
+}
+
+void AWeapon::SpendAmmo()
+{
+	Ammo = FMath::Clamp(--Ammo, 0, MagCapasity);
+}
+
+bool AWeapon::IsEmpty()
+{
+	return Ammo <= 0;
 }
 

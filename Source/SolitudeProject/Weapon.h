@@ -24,6 +24,8 @@ class UWidgetComponent;
 class AProjectile;
 class UParticleSystem;
 class USoundCue;
+class AMainCharacter;
+class ABasePlayerController;
 
 UCLASS()
 class SOLITUDEPROJECT_API AWeapon : public AActor
@@ -70,6 +72,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
 	EWeaponType WeaponType;
 
+	UPROPERTY()
+	AMainCharacter* OwnerCharacter = nullptr;
+
+	UPROPERTY()
+	ABasePlayerController* OwnerPlayerController = nullptr;
+
+	UPROPERTY()
+	AActor* WeponTarget = nullptr;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -84,10 +95,10 @@ public:
 	bool bAiming = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
-		bool bAutomatic = true;
+	bool bAutomatic = true;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
-		float FireDelay = 0.f;
+	float FireDelay = 0.f;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -104,8 +115,12 @@ public:
 
 	bool IsEmpty();
 
+	bool IsTargetOwner();
+
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE void SetTarget(AActor* Target) { WeponTarget = Target; }
+
 	//FORCEINLINE bool IsPistol() const { return bPistol; }
 
 };

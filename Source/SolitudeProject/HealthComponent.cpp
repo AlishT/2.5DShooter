@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "BaseCharacter.h"
+#include "BasePlayerController.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -22,6 +23,17 @@ void UHealthComponent::BeginPlay()
 	CurrentHealth = GetMaxHealth();
 	CurrentArmor = GetMaxArmor();
 
+	ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner());
+
+	if (!Character) return;
+
+	ABasePlayerController* PlayerContraller = Character->GetController<ABasePlayerController>();
+
+	if (PlayerContraller)
+	{
+		PlayerContraller->SetHUDHealth(CurrentHealth, GetMaxHealth());
+	}
+
 	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::OnTakeDamage);
 }
 
@@ -36,10 +48,6 @@ void UHealthComponent::OnTakeDamage(AActor* DamagedActor, float Damage, const UD
 			FVector ProgectileLocation = DamagedActor->GetActorLocation();
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodPartical, ProgectileLocation);
 		}
-
-		ABaseCharacter* Character = Cast<ABaseCharacter>(DamagedActor);
-		
-		Character->PlayHitReactMontage();
 	}
 
 	OnHealthChanged.Broadcast(CurrentHealth, CurrentArmor);

@@ -11,6 +11,7 @@
 #include "Weapon.h"
 #include "Components/CapsuleComponent.h"
 #include "SolitudeProject.h"
+#include "BasePlayerController.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -68,10 +69,9 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseCharacter::HealthChanged(float Health, float Armor)
 {
-	if (Health > 0)
-	{
-		return;
-	}
+	PlayHitReactMontage();
+
+	if (Health > 0) return;
 
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{

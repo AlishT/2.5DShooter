@@ -6,9 +6,9 @@
 #include "BaseCharacter.h"
 #include "MainCharacter.generated.h"
 
-class USpringArmComponent;
-class UCameraComponent;
+class AFollowCamera;
 class AWeapon;
+class AFollowCamera;
 
 /**
  * 
@@ -23,10 +23,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
-	USpringArmComponent* CameraBoom = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Default")
-	UCameraComponent* PlayerCamera = nullptr;
+	TSubclassOf<AFollowCamera> FollowCameraClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputMappingContext* MovingMC = nullptr;
@@ -60,10 +57,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputAction* ReloadAction = nullptr;
-
+	
+	UPROPERTY()
 	AWeapon* PickapedWeapom = nullptr;
 
-	float DirectionValue = 0.f;
+	UPROPERTY()
+	AFollowCamera* FollowCamera = nullptr;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

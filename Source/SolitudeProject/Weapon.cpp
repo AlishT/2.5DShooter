@@ -14,6 +14,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
+#include "BasePlayerController.h"
+#include "TimerManager.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -38,7 +40,6 @@ AWeapon::AWeapon()
 	PickupWidget->SetupAttachment(RootComponent);
 
 	PickupCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
-
 	PickupCollision->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnEndSphereOverlap);
 
 }
@@ -47,7 +48,7 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	ShowPickupWidget(false);
 
 	Ammo = MagCapasity;
@@ -56,22 +57,23 @@ void AWeapon::BeginPlay()
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AMainCharacter* Character = Cast<AMainCharacter>(OtherActor);
+	OwnerCharacter = Cast<AMainCharacter>(OtherActor);
 
-	if (Character && PickupWidget)
+	if (OwnerCharacter && PickupWidget)
 	{
 		ShowPickupWidget(true);
-		Character->SetOverlappingWeapon(this);
+		OwnerCharacter->SetOverlappingWeapon(this);
 	}
 }
 
 void AWeapon::OnEndSphereOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	AMainCharacter* Character = Cast<AMainCharacter>(OtherActor);
 
-	if (Character && PickupWidget)
+	if (OwnerCharacter && PickupWidget)
 	{
 		ShowPickupWidget(false);
+		OwnerCharacter->SetOverlappingWeapon(nullptr);
+		//OwnerCharacter = nullptr;
 	}
 }
 
@@ -165,6 +167,8 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	OwnerCharacter = nullptr;
+	OwnerPlayerController = nullptr;
 }
 
 void AWeapon::SpendAmmo()
@@ -175,5 +179,10 @@ void AWeapon::SpendAmmo()
 bool AWeapon::IsEmpty()
 {
 	return Ammo <= 0;
+}
+
+bool AWeapon::IsTargetOwner()
+{
+	return (WeponTarget == GetOwner()) ? true : false;
 }
 

@@ -11,19 +11,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CombatComponent.h"
 #include "Weapon.h"
+#include "BasePlayerController.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "FollowCamera.h"
 
 AMainCharacter::AMainCharacter()
 {
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(GetRootComponent());
-	CameraBoom->bDoCollisionTest = false;
-	//CameraBoom->SocketOffset = FVector(0.f, 250.f, 0.f);
-
-	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	PlayerCamera->bUsePawnControlRotation = false;
-
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
@@ -39,23 +32,44 @@ void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerController* PC = GetController<APlayerController>();
+	ABasePlayerController* PlayerController = GetController<ABasePlayerController>();
 
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!PlayerController) return;
+
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 
 	if (Subsystem)
 	{
 		Subsystem->AddMappingContext(MovingMC, 0);
 	}
 
-	PC->bShowMouseCursor = true;
+	PlayerController->bShowMouseCursor = true;
+
+	if (FollowCameraClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		float CameraYaw = -90;
+		FollowCamera = GetWorld()->SpawnActor<AFollowCamera>(FollowCameraClass, GetActorLocation(), FRotator(0.f, CameraYaw, 0.f), SpawnParams);
+
+		PlayerController->SetViewTargetWithBlend(FollowCamera);
+	}
+		PlayerController->bShowMouseCursor = true;
+
 }
 
 void AMainCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	bSprinting = false;
+	//bSprinting = false;
+
+	if (FollowCamera)
+	{
+		FollowCamera->UpdateCameraPos(GetActorLocation());
+	}
 
 	FHitResult HitRes = FHitResult();
 	
@@ -63,15 +77,14 @@ void AMainCharacter::Tick(float DeltaTime)
 	
 	if (Hit)
 	{
-		if (!HitRes.bBlockingHit)
-		{
-			return;
-		}
-
+		if (!HitRes.bBlockingHit) return;
+		
+		//if(HitRes.GetActor() == this) return;
+	
 		TargetLocation = HitRes.ImpactPoint;
-
+	
 		RotateCharacter();
-	}
+	
 	
 	//AimOffset(DeltaTime);
 
@@ -81,13 +94,13 @@ void AMainCharacter::Tick(float DeltaTime)
 	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(false);
+		
+		if (CombatComponent->EquippedWeapon)
+		{
+			CombatComponent->EquippedWeapon->SetTarget(HitRes.GetActor());
+		}
 	}
-
-	/*if (bIsCrouched)
-	{
-		UnCrouch();
-	}*/
-
+	}
 }
 
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -114,7 +127,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void AMainCharacter::Move(const FInputActionValue& Value)
 {
-	DirectionValue = Value.Get<float>();
+	float DirectionValue = Value.Get<float>();
 
 	if (Controller && DirectionValue != 0) 
 	{
@@ -123,6 +136,11 @@ void AMainCharacter::Move(const FInputActionValue& Value)
 		//FVector Forward = FVector::ForwardVector * DirectionValue;
 		AddMovementInput(Direction, DirectionValue);
 
+		if (!IsAiming())
+		{
+			FollowCamera->SetCamDirection(DirectionValue);
+		}
+		
 		UE_LOG(LogTemp, Warning, TEXT("Direction Value %f"), DirectionValue);
 	}
 }
@@ -171,7 +189,6 @@ void AMainCharacter::Fire()
 	if (IsWeaponEquipeed())
 	{
 		CombatComponent->Fire();
-		PlayFireMontage(IsAiming());
 	}
 }
 

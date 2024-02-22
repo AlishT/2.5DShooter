@@ -20,7 +20,8 @@ class SOLITUDEPROJECT_API UCombatComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UCombatComponent();
-
+	
+	UPROPERTY()
 	AWeapon* EquippedWeapon = nullptr;
 private:
 	ABaseCharacter* Character = nullptr;

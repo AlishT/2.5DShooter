@@ -45,6 +45,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 	if (!WeaponToEquip || !Character) return;
 
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Dropped();
+	}
+
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("s_weapon"));
@@ -84,7 +89,7 @@ void UCombatComponent::Fire()
 {
 	if (EquippedWeapon->bAutomatic)
 	{
-		if (bCanFire && !EquippedWeapon->IsEmpty())
+		if (bCanFire && !EquippedWeapon->IsEmpty() && !EquippedWeapon->IsTargetOwner())
 		{
 			bCanFire = false;
 
@@ -107,6 +112,7 @@ void UCombatComponent::FireTimerFinished()
 	if (EquippedWeapon->bAutomatic)
 	{
 		EquippedWeapon->Shoot(Character->GetHitTarget());
+		Character->PlayFireMontage(GetAiming());
 	}
 
 }

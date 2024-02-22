@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "BasePlayerController.generated.h"
 
+class ABaseHUD;
 /**
  * 
  */
@@ -14,4 +15,14 @@ class SOLITUDEPROJECT_API ABasePlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+
+	void SetHUDHealth(float Health, float MaxHealth);
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY()
+	ABaseHUD* BaseHUD = nullptr;
 };

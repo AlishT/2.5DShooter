@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "BaseHUD.generated.h"
 
+class UCharacterOverlay;
 /**
  * 
  */
@@ -16,4 +17,15 @@ class SOLITUDEPROJECT_API ABaseHUD : public AHUD
 	
 public:
 	virtual void DrawHUD() override;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player Stats")
+	TSubclassOf<class UUserWidget> CharacterOverlayClass;
+
+	UPROPERTY()
+	UCharacterOverlay* CharacterOverlay = nullptr;
+
+protected:
+	virtual void BeginPlay() override;
+
+	void AddCharacterOverlay();
 };

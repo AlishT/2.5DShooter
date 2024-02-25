@@ -12,6 +12,7 @@
 #include "Components/CapsuleComponent.h"
 #include "SolitudeProject.h"
 #include "BasePlayerController.h"
+#include "CombatState.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -156,6 +157,13 @@ AWeapon* ABaseCharacter::GetEquippedWeapon() const
 	}
 
 	return CombatComponent->EquippedWeapon;
+}
+
+ECombatState ABaseCharacter::GetCombatState() const
+{
+	if (!CombatComponent) return ECombatState::ECS_MAX;
+
+	return CombatComponent->CombatState;
 }
 
 void ABaseCharacter::AimOffset(float DelataTime)

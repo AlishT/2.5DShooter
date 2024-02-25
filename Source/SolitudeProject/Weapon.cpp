@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "BasePlayerController.h"
 #include "TimerManager.h"
+#include "BasePlayerController.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -168,12 +169,24 @@ void AWeapon::Dropped()
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
 	OwnerCharacter = nullptr;
-	OwnerPlayerController = nullptr;
+	PlayerController = nullptr;
 }
 
 void AWeapon::SpendAmmo()
 {
 	Ammo = FMath::Clamp(--Ammo, 0, MagCapasity);
+
+	SetAmmoHUD();
+}
+
+void AWeapon::SetAmmoHUD()
+{
+	PlayerController = Cast<ABasePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	
+	if (PlayerController)
+	{
+		PlayerController->SetHUDWeaponAmmo(Ammo);
+	}
 }
 
 bool AWeapon::IsEmpty()

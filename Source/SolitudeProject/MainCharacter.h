@@ -58,10 +58,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputAction* ReloadAction = nullptr;
 	
-	UPROPERTY()
+	UPROPERTY(Transient)
 	AWeapon* PickapedWeapom = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	AFollowCamera* FollowCamera = nullptr;
 
 	// Called when the game starts or when spawned

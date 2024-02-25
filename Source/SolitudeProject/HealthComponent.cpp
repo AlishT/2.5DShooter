@@ -23,23 +23,33 @@ void UHealthComponent::BeginPlay()
 	CurrentHealth = GetMaxHealth();
 	CurrentArmor = GetMaxArmor();
 
-	ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwner());
+	UpdateHUDState();
 
-	if (!Character) return;
+	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::OnTakeDamage);
+}
+void UHealthComponent::UpdateHUDState()
+{
+	Character = (!Character) ? Cast<ABaseCharacter>(GetOwner()) : Character;
 
-	ABasePlayerController* PlayerContraller = Character->GetController<ABasePlayerController>();
+	if (Character)
+	{
+		PlayerContraller = (!PlayerContraller) ? Character->GetController<ABasePlayerController>() : PlayerContraller;
+	}
 
 	if (PlayerContraller)
 	{
 		PlayerContraller->SetHUDHealth(CurrentHealth, GetMaxHealth());
+		PlayerContraller->SetHUDArmor(CurrentArmor, GetMaxArmor());
 	}
 
-	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::OnTakeDamage);
+
 }
 
 void UHealthComponent::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigateBy, AActor* DamageCauser)
 {
 	(CurrentArmor > 0) ? CurrentArmor -= Damage : CurrentHealth -= Damage;
+
+	UpdateHUDState();
 
 	if (DamagedActor)
 	{

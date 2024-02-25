@@ -65,6 +65,9 @@ private:
 	bool bIsAming = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bUseFABRIK = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	FTransform LeftHandTransform;
 
 	AWeapon* EquippedWeapon = nullptr;

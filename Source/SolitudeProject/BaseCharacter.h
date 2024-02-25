@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "CombatState.h"
 #include "BaseCharacter.generated.h"
 
 class UHealthComponent;
@@ -25,7 +26,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
 	UHealthComponent* HealthComponent = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Default")
 	UCombatComponent* CombatComponent = nullptr;
 
 	FVector TargetLocation = FVector::ZeroVector;
@@ -85,5 +86,7 @@ public:
 	FORCEINLINE FVector GetHitTarget() const { return TargetLocation; };
 
 	AWeapon* GetEquippedWeapon() const;
+
+	ECombatState GetCombatState() const;
 
 };

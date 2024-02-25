@@ -72,13 +72,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
 	EWeaponType WeaponType;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	AMainCharacter* OwnerCharacter = nullptr;
 
-	UPROPERTY()
-	ABasePlayerController* OwnerPlayerController = nullptr;
+	UPROPERTY(Transient)
+	ABasePlayerController* PlayerController = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	AActor* WeponTarget = nullptr;
 
 protected:
@@ -112,6 +112,8 @@ public:
 	void Dropped();
 
 	void SpendAmmo();
+	
+	void SetAmmoHUD();
 
 	bool IsEmpty();
 

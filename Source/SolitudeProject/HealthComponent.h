@@ -7,6 +7,8 @@
 #include "HealthComponent.generated.h"
 
 class UParticleSystem;
+class ABaseCharacter;
+class ABasePlayerController;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, Health, float, Armor);
 
@@ -22,7 +24,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;
 
-protected:
+private:
 	
 	UPROPERTY(EditAnywhere, Category = "Default")
 	float MaxHealth = 100.f;
@@ -30,14 +32,22 @@ protected:
 	float CurrentHealth = 0.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Default")
-	float MaxArmor = 0.f;
+	float MaxArmor = 100.f;
 
 	float CurrentArmor = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
 	UParticleSystem* BloodPartical = nullptr;
 
-	// Called when the game starts
+	UPROPERTY(Transient)
+	ABaseCharacter* Character = nullptr;
+	
+	UPROPERTY(Transient)
+	ABasePlayerController* PlayerContraller = nullptr;
+	
+	void UpdateHUDState();
+
+protected:
 	virtual void BeginPlay() override;
 
 public:	

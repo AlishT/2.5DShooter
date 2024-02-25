@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Weapon.h"
+#include "CombatState.h"
 
 void UBaseAnimInstance::NativeInitializeAnimation()
 {
@@ -67,5 +68,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DealtaTime)
 			LeftHandTransform.SetLocation(OutPosition);
 			LeftHandTransform.SetRotation(FQuat(OutRotation));
 		}
+
+		bUseFABRIK = BaseCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 	}
 }

@@ -7,7 +7,9 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "BasePlayerController.h"
 #include "TimerManager.h"
+#include "CombatState.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -28,7 +30,11 @@ void UCombatComponent::BeginPlay()
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+
+		PlayerController = Character->GetController<ABasePlayerController>();
 	}
+
+	IntializeCarriedAmmo();
 }
 
 // Called every frame
@@ -52,6 +58,15 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	EquippedWeapon->SetAmmoHUD();
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+
+	SetCarriedAmmoHUD();
+
 	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("s_weapon"));
 	if (HandSocket)
 	{
@@ -61,14 +76,35 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetOwner(Character);
 }
 
-void UCombatComponent::Reload()
+void UCombatComponent::SetCarriedAmmoHUD()
 {
-	if (CarriedAmmo > 0)
+	if (Character)
 	{
-		if (!Character) return;
-		Character->PlayReloadMontage();
+		PlayerController = (!PlayerController) ? Character->GetController<ABasePlayerController>() : PlayerController;
+		
+		if (PlayerController)
+		{
+			PlayerController->SetHUDCarriedAmmo(CarriedAmmo);
+		}
 	}
 }
+
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	{
+		if (!Character) return;
+		CombatState = ECombatState::ECS_Reloading;
+		Character->PlayReloadMontage();
+		SetCarriedAmmoHUD();
+	}
+}
+
+void UCombatComponent::FinishReloading()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+}
+
 
 void UCombatComponent::SetAiming(const bool bIsAiming)
 {
@@ -115,5 +151,11 @@ void UCombatComponent::FireTimerFinished()
 		Character->PlayFireMontage(GetAiming());
 	}
 
+}
+
+void UCombatComponent::IntializeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, 30);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssultRifle, 60);
 }
 

@@ -20,4 +20,17 @@ public:
 
 	UPROPERTY(Meta = (BindWidget))
 	class UTextBlock* HealthText = nullptr;
+
+	UPROPERTY(Meta = (BindWidget))
+	class UProgressBar* ArmorBar = nullptr;
+
+	UPROPERTY(Meta = (BindWidget))
+	class UTextBlock* ArmorText = nullptr;
+
+	UPROPERTY(Meta = (BindWidget))
+	class UTextBlock* AmmoCount = nullptr;
+
+	UPROPERTY(Meta = (BindWidget))
+	class UTextBlock* CarriedAmmo = nullptr;
+
 };

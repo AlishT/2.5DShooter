@@ -29,3 +29,44 @@ void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 		BaseHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
 	}
 }
+
+void ABasePlayerController::SetHUDArmor(float Armor, float MaxArmor)
+{
+	BaseHUD = (!BaseHUD) ? GetHUD<ABaseHUD>() : BaseHUD;
+
+	bool BHUDValid = BaseHUD && BaseHUD->CharacterOverlay && BaseHUD->CharacterOverlay->ArmorBar && BaseHUD->CharacterOverlay->ArmorText;
+
+	if (BHUDValid)
+	{
+		const float ArmorPercetnt = Armor / MaxArmor;
+		BaseHUD->CharacterOverlay->ArmorBar->SetPercent(ArmorPercetnt);
+		FString ArmorText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Armor), FMath::CeilToInt(MaxArmor));
+		BaseHUD->CharacterOverlay->ArmorText->SetText(FText::FromString(ArmorText));
+	}
+}
+
+void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo)
+{
+	BaseHUD = (!BaseHUD) ? GetHUD<ABaseHUD>() : BaseHUD;
+
+	bool BHUDValid = BaseHUD && BaseHUD->CharacterOverlay && BaseHUD->CharacterOverlay->AmmoCount;
+
+	if (BHUDValid)
+	{
+		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
+		BaseHUD->CharacterOverlay->AmmoCount->SetText(FText::FromString(AmmoText));
+	}
+}
+
+void ABasePlayerController::SetHUDCarriedAmmo(int32 Ammo)
+{
+	BaseHUD = (!BaseHUD) ? GetHUD<ABaseHUD>() : BaseHUD;
+
+	bool BHUDValid = BaseHUD && BaseHUD->CharacterOverlay && BaseHUD->CharacterOverlay->CarriedAmmo;
+
+	if (BHUDValid)
+	{
+		FString CarriedAmmoText = FString::Printf(TEXT("%d"), Ammo);
+		BaseHUD->CharacterOverlay->CarriedAmmo->SetText(FText::FromString(CarriedAmmoText));
+	}
+}

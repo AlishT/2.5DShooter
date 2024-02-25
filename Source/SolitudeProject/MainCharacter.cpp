@@ -95,9 +95,9 @@ void AMainCharacter::Tick(float DeltaTime)
 	{
 		CombatComponent->SetAiming(false);
 		
-		if (CombatComponent->EquippedWeapon)
+		if (CombatComponent->GetEquippedWeapon())
 		{
-			CombatComponent->EquippedWeapon->SetTarget(HitRes.GetActor());
+			CombatComponent->GetEquippedWeapon()->SetTarget(HitRes.GetActor());
 		}
 	}
 	}
@@ -121,7 +121,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		PlayerEnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AMainCharacter::Fire);
 		PlayerEnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AMainCharacter::Aiming);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AMainCharacter::Sprint);
-		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AMainCharacter::Reload);
+		PlayerEnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AMainCharacter::Reload);
 	}
 }
 
@@ -178,9 +178,9 @@ void AMainCharacter::EquipWeapon()
 
 void AMainCharacter::DroppedWeapon()
 {
-	if (CombatComponent && CombatComponent->EquippedWeapon)
+	if (CombatComponent && CombatComponent->GetEquippedWeapon())
 	{
-		CombatComponent->EquippedWeapon->Dropped();
+		CombatComponent->GetEquippedWeapon()->Dropped();
 	}
 }
 
@@ -197,8 +197,8 @@ void AMainCharacter::Aiming()
 	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(true);
-		if (!CombatComponent->EquippedWeapon) return;
-		CombatComponent->EquippedWeapon->bAiming = true;
+		if (!CombatComponent->GetEquippedWeapon()) return;
+		CombatComponent->GetEquippedWeapon()->bAiming = true;
 	}
 }
 

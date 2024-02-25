@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "WeaponTypes.h"
+#include "CombatState.h"
 #include "CombatComponent.generated.h"
 
 class AWeapon;
 class ABaseCharacter;
+class ABasePlayerController;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SOLITUDEPROJECT_API UCombatComponent : public UActorComponent
@@ -21,10 +23,15 @@ public:
 	// Sets default values for this component's properties
 	UCombatComponent();
 	
-	UPROPERTY()
-	AWeapon* EquippedWeapon = nullptr;
 private:
+	UPROPERTY(Transient)
 	ABaseCharacter* Character = nullptr;
+
+	UPROPERTY(Transient)
+	AWeapon* EquippedWeapon = nullptr;
+
+	UPROPERTY(Transient)
+	ABasePlayerController* PlayerController = nullptr;
 
 	bool bAiming = false;
 
@@ -38,9 +45,14 @@ private:
 
 	float CurrentTime = 0.f;
 
-	int32 CarriedAmmo = 30;
+	int32 CarriedAmmo = 0;
 
-	TMap<EWeaponType, int32> VarriedAmmoMap;
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY()
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	//void SetCombatState();
 
 protected:
 	// Called when the game starts
@@ -52,16 +64,28 @@ protected:
 
 	void FireTimerFinished();
 
+	void IntializeCarriedAmmo();
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+
 	void EquipWeapon(AWeapon* WeaponToEquip);
+
+	void SetCarriedAmmoHUD();
+	
 	void Reload();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 		
 	void SetAiming(const bool bIsAiming);
 
 	bool GetAiming() const;
 
 	void Fire();
+
+
 };

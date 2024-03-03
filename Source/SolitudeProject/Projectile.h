@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
-class USphereComponent;
+class UBoxComponent;
 class UProjectileMovementComponent;
 class UParticleSystem;
 class USoundCue;
@@ -25,7 +25,7 @@ protected:
 	UStaticMeshComponent* ProjectileMesh = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Defauult")
-	USphereComponent* CollisionSphere = nullptr;
+	UBoxComponent* CollisionBox = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Defauult")
 	UProjectileMovementComponent* ProjectileMovement = nullptr;
@@ -46,13 +46,14 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	void FireInDirection(const FVector& ShootDirection);
 
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
+	void DestroyProjectile();
 };

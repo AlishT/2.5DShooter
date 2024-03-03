@@ -26,6 +26,7 @@ class UParticleSystem;
 class USoundCue;
 class AMainCharacter;
 class ABasePlayerController;
+class USoundCue;
 
 UCLASS()
 class SOLITUDEPROJECT_API AWeapon : public AActor
@@ -86,7 +87,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void OnSphereOverlap(class UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	virtual void OnEndSphereOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
@@ -100,6 +101,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
 	float FireDelay = 0.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	USoundCue* EquippedSound = nullptr;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -112,10 +116,16 @@ public:
 	void Dropped();
 
 	void SpendAmmo();
+
+	void AddAmmo(int32 AmmoToAdd);
+
+	int32 GetRoomInMag();
 	
 	void SetAmmoHUD();
 
 	bool IsEmpty();
+
+	bool IsFullCapasity();
 
 	bool IsTargetOwner();
 

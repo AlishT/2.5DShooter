@@ -45,7 +45,7 @@ private:
 	UPROPERTY(Transient)
 	ABasePlayerController* PlayerContraller = nullptr;
 	
-	void UpdateHUDState();
+	void UpdateHUDStates();
 
 protected:
 	virtual void BeginPlay() override;

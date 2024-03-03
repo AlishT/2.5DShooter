@@ -10,6 +10,7 @@
 #include "BasePlayerController.h"
 #include "TimerManager.h"
 #include "CombatState.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -65,6 +66,16 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
 
+	if (EquippedWeapon->EquippedSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquippedSound, Character->GetActorLocation());
+	}
+
+	if (EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
+	 
 	SetCarriedAmmoHUD();
 
 	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("s_weapon"));
@@ -75,36 +86,6 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 	EquippedWeapon->SetOwner(Character);
 }
-
-void UCombatComponent::SetCarriedAmmoHUD()
-{
-	if (Character)
-	{
-		PlayerController = (!PlayerController) ? Character->GetController<ABasePlayerController>() : PlayerController;
-		
-		if (PlayerController)
-		{
-			PlayerController->SetHUDCarriedAmmo(CarriedAmmo);
-		}
-	}
-}
-
-void UCombatComponent::Reload()
-{
-	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
-	{
-		if (!Character) return;
-		CombatState = ECombatState::ECS_Reloading;
-		Character->PlayReloadMontage();
-		SetCarriedAmmoHUD();
-	}
-}
-
-void UCombatComponent::FinishReloading()
-{
-	CombatState = ECombatState::ECS_Unoccupied;
-}
-
 
 void UCombatComponent::SetAiming(const bool bIsAiming)
 {
@@ -151,11 +132,78 @@ void UCombatComponent::FireTimerFinished()
 		Character->PlayFireMontage(GetAiming());
 	}
 
+	if (EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
+
 }
 
 void UCombatComponent::IntializeCarriedAmmo()
 {
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, 30);
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssultRifle, 60);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, MaxPistolAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssultRifle, MaxARAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_MashineGun, MaxMGAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, MaxRocketAmmo);
 }
 
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmo > 0 && EquippedWeapon && !EquippedWeapon->IsFullCapasity() && CombatState != ECombatState::ECS_Reloading)
+	{
+		if (!Character) return;
+
+		CombatState = ECombatState::ECS_Reloading;
+		Character->PlayReloadMontage();
+		bCanFire = false;
+	}
+}
+
+int32 UCombatComponent::AmountToReloaud()
+{
+	if (!EquippedWeapon) return 0;
+
+	int32 RoomInMag = EquippedWeapon->GetRoomInMag();
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		int32 AmountCarried = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+		int32 Least = FMath::Min(RoomInMag, AmountCarried);
+		return FMath::Clamp(RoomInMag, 0, Least);
+
+	}
+	return 0;
+}
+
+void UCombatComponent::FinishReloading()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+
+	UpdateAmmoValue();
+	bCanFire = true;
+}
+
+void UCombatComponent::UpdateAmmoValue()
+{
+	if (!EquippedWeapon) return;
+
+	int32 ReloadAmount = AmountToReloaud();
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= ReloadAmount;
+	}
+	EquippedWeapon->AddAmmo(-ReloadAmount);
+	SetCarriedAmmoHUD();
+}
+
+void UCombatComponent::SetCarriedAmmoHUD()
+{
+	if (Character)
+	{
+		PlayerController = (!PlayerController) ? Character->GetController<ABasePlayerController>() : PlayerController;
+
+		if (PlayerController && CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+		{
+			PlayerController->SetHUDCarriedAmmo(CarriedAmmoMap[EquippedWeapon->GetWeaponType()]);
+		}
+	}
+}

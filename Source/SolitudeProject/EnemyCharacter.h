@@ -16,8 +16,5 @@ class SOLITUDEPROJECT_API AEnemyCharacter : public ABaseCharacter
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "Default")
-	TSubclassOf<AWeapon> EnemyWeaponClass;
-
 	virtual void BeginPlay()override;
 };

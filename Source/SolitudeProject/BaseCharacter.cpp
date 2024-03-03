@@ -43,6 +43,15 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = GetInstigator();
+	if (DefaultWeaponClass)
+	{
+		AWeapon* EnemyWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+
+		CombatComponent->EquipWeapon(EnemyWeapon);
+	}
 }
 
 void ABaseCharacter::Tick(float DeltaTime)

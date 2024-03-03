@@ -67,8 +67,15 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DealtaTime)
 			BaseCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
 			LeftHandTransform.SetLocation(OutPosition);
 			LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+			FTransform RightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World);
+			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() +(RightHandTransform.GetLocation() - BaseCharacter->GetHitTarget()));
+
+			/*FTransform MuzzleTipTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzlePlash"), ERelativeTransformSpace::RTS_World);
+			FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));*/
 		}
 
 		bUseFABRIK = BaseCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+		bUseAimOffset = BaseCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 	}
 }

@@ -2,7 +2,7 @@
 
 
 #include "Projectile.h"
-#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
@@ -17,22 +17,22 @@ AProjectile::AProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	SetRootComponent(CollisionSphere);
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionSphere"));
+	SetRootComponent(CollisionBox);
 
-	CollisionSphere->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CollisionSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	CollisionSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	CollisionSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
+	CollisionBox->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
 	
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
-	ProjectileMesh->SetupAttachment(CollisionSphere);
+	ProjectileMesh->SetupAttachment(CollisionBox);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 
-	ProjectileMovement->SetUpdatedComponent(CollisionSphere);
+	ProjectileMovement->SetUpdatedComponent(CollisionBox);
 	ProjectileMovement->InitialSpeed = 3000.0f;
 	ProjectileMovement->MaxSpeed = 3000.0f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
@@ -42,7 +42,7 @@ AProjectile::AProjectile()
 
 	InitialLifeSpan = 0.3f;
 	
-	CollisionSphere->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+	CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 }
 
 // Called when the game starts or when spawned
@@ -52,7 +52,7 @@ void AProjectile::BeginPlay()
 
 	if (Tracer)
 	{
-		TracerComponent = UGameplayStatics::SpawnEmitterAttached(Tracer, CollisionSphere, FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition);
+		TracerComponent = UGameplayStatics::SpawnEmitterAttached(Tracer, CollisionBox, FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition);
 	}
 
 }
@@ -76,14 +76,11 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 		return;
 	}
 
-	if (OtherActor)
-	{
-		AController* OwnerInstigator = GetOwner()->GetInstigatorController();
-		UClass* DamageTypeClass = UDamageType::StaticClass();
-		UGameplayStatics::ApplyDamage(OtherActor, Damage, OwnerInstigator, this, DamageTypeClass);
+	DestroyProjectile();
+}
 
-	}
-
+void AProjectile::DestroyProjectile()
+{
 	if (ImpactPartical)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactPartical, GetActorLocation());
@@ -95,5 +92,6 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 	}
 
 	Destroy();
+
 }
 

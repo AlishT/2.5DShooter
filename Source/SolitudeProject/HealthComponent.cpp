@@ -23,11 +23,11 @@ void UHealthComponent::BeginPlay()
 	CurrentHealth = GetMaxHealth();
 	CurrentArmor = GetMaxArmor();
 
-	UpdateHUDState();
+	UpdateHUDStates();
 
 	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::OnTakeDamage);
 }
-void UHealthComponent::UpdateHUDState()
+void UHealthComponent::UpdateHUDStates()
 {
 	Character = (!Character) ? Cast<ABaseCharacter>(GetOwner()) : Character;
 
@@ -47,9 +47,23 @@ void UHealthComponent::UpdateHUDState()
 
 void UHealthComponent::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigateBy, AActor* DamageCauser)
 {
-	(CurrentArmor > 0) ? CurrentArmor -= Damage : CurrentHealth -= Damage;
+	
+	int DeltaDamage = 0;
 
-	UpdateHUDState();
+	if (CurrentArmor < Damage && CurrentArmor != 0)
+	{
+		DeltaDamage = CurrentArmor - Damage;
+		CurrentHealth -= FMath::Abs(DeltaDamage);
+	}
+
+	if (CurrentArmor <= 0 && DeltaDamage == 0)
+	{
+		CurrentHealth -= Damage;
+	}
+
+	CurrentArmor = FMath::Clamp(CurrentArmor - Damage, 0, MaxArmor);
+
+	UpdateHUDStates();
 
 	if (DamagedActor)
 	{

@@ -56,7 +56,7 @@ void AWeapon::BeginPlay()
 
 }
 
-void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWeapon::OnSphereOverlap(class UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	OwnerCharacter = Cast<AMainCharacter>(OtherActor);
 
@@ -179,6 +179,17 @@ void AWeapon::SpendAmmo()
 	SetAmmoHUD();
 }
 
+void AWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapasity);
+	SetAmmoHUD();
+}
+
+int32 AWeapon::GetRoomInMag()
+{
+	return MagCapasity - Ammo;
+}
+
 void AWeapon::SetAmmoHUD()
 {
 	PlayerController = Cast<ABasePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
@@ -192,6 +203,11 @@ void AWeapon::SetAmmoHUD()
 bool AWeapon::IsEmpty()
 {
 	return Ammo <= 0;
+}
+
+bool AWeapon::IsFullCapasity()
+{
+	return Ammo >= MagCapasity;
 }
 
 bool AWeapon::IsTargetOwner()

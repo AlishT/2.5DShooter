@@ -41,6 +41,9 @@ protected:
 	
 	FRotator StartingAimRotation = FRotator::ZeroRotator;
 
+	UPROPERTY(EditAnywhere, Category = "Default")
+	TSubclassOf<AWeapon> DefaultWeaponClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* FireWeaponMontage = nullptr;
 

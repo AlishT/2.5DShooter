@@ -45,9 +45,21 @@ private:
 
 	float CurrentTime = 0.f;
 
-	int32 CarriedAmmo = 0;
+	int32 CarriedAmmo = 60;
 
 	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditDefaultsOnly, Category = "CarriedAmmo")
+	int32 MaxARAmmo = 60;
+
+	UPROPERTY(EditDefaultsOnly, Category = "CarriedAmmo")
+	int32 MaxPistolAmmo = 30;
+
+	UPROPERTY(EditDefaultsOnly, Category = "CarriedAmmo")
+	int32 MaxMGAmmo = 60;
+
+	UPROPERTY(EditDefaultsOnly, Category = "CarriedAmmo")
+	int32 MaxRocketAmmo = 2;
 
 	UPROPERTY()
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;
@@ -66,6 +78,8 @@ protected:
 
 	void IntializeCarriedAmmo();
 
+	void UpdateAmmoValue();
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -77,6 +91,8 @@ public:
 	void SetCarriedAmmoHUD();
 	
 	void Reload();
+
+	int32 AmountToReloaud();
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();

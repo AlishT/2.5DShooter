@@ -68,7 +68,13 @@ private:
 	bool bUseFABRIK = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bUseAimOffset = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	FTransform LeftHandTransform;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	FRotator RightHandRotation = FRotator::ZeroRotator;
 
 	AWeapon* EquippedWeapon = nullptr;
 };

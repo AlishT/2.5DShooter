@@ -99,5 +99,5 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	FORCEINLINE void SetOverlappingWeapon(AWeapon* Weapon) { PickapedWeapom = Weapon; }
-
+	FORCEINLINE AFollowCamera* GetFollowCamera() { return FollowCamera; }
 };

@@ -44,7 +44,8 @@ void AMainCharacter::BeginPlay()
 	}
 
 	PlayerController->bShowMouseCursor = true;
-
+	
+	//Attached Follow camera
 	if (FollowCameraClass)
 	{
 		FActorSpawnParameters SpawnParams;
@@ -78,8 +79,6 @@ void AMainCharacter::Tick(float DeltaTime)
 	if (Hit)
 	{
 		if (!HitRes.bBlockingHit) return;
-		
-		//if(HitRes.GetActor() == this) return;
 	
 		TargetLocation = HitRes.ImpactPoint;
 	
@@ -88,18 +87,18 @@ void AMainCharacter::Tick(float DeltaTime)
 	
 	//AimOffset(DeltaTime);
 
-	UE_LOG(LogTemp, Warning, TEXT("AO Yaw %f"), AO_Yaw);
-	UE_LOG(LogTemp, Warning, TEXT("AO Pitch %f"), AO_Pitch);
+	//UE_LOG(LogTemp, Warning, TEXT("AO Yaw %f"), AO_Yaw);
+	//UE_LOG(LogTemp, Warning, TEXT("AO Pitch %f"), AO_Pitch);
 
-	if (CombatComponent)
-	{
-		CombatComponent->SetAiming(false);
-		
-		if (CombatComponent->GetEquippedWeapon())
+		if (CombatComponent)
 		{
-			CombatComponent->GetEquippedWeapon()->SetTarget(HitRes.GetActor());
+			CombatComponent->SetAiming(false);
+		
+			if (CombatComponent->GetEquippedWeapon())
+			{
+				CombatComponent->GetEquippedWeapon()->SetTarget(HitRes.GetActor());
+			}
 		}
-	}
 	}
 }
 
@@ -141,7 +140,7 @@ void AMainCharacter::Move(const FInputActionValue& Value)
 			FollowCamera->SetCamDirection(DirectionValue);
 		}
 		
-		UE_LOG(LogTemp, Warning, TEXT("Direction Value %f"), DirectionValue);
+		//UE_LOG(LogTemp, Warning, TEXT("Direction Value %f"), DirectionValue);
 	}
 }
 
@@ -170,7 +169,14 @@ void AMainCharacter::EquipWeapon()
 {
 	if (CombatComponent)
 	{
-		CombatComponent->EquipWeapon(PickapedWeapom);
+		if (PickapedWeapom)
+		{
+			CombatComponent->EquipWeapon(PickapedWeapom);
+		}
+		else if (CombatComponent->ShoodSwapWeapons())
+		{
+			CombatComponent->SwapWeapon();
+		}
 	}
 
 	//bEquipWeapon = bEquip;

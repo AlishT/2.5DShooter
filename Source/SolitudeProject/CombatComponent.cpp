@@ -22,7 +22,6 @@ UCombatComponent::UCombatComponent()
 	// ...
 }
 
-
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
@@ -51,6 +50,36 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	Character = Cast<ABaseCharacter>(GetOwner());
 
 	if (!WeaponToEquip || !Character) return;
+	
+	if (EquippedWeapon && !SecondaryWeapon)
+	{
+		EquipSecondaryWeapon(WeaponToEquip);
+	}
+	else
+	{
+		EquipPrimaryWeapon(WeaponToEquip);
+	}
+}
+
+void UCombatComponent::SwapWeapon()
+{
+	AWeapon* TempWeapon = EquippedWeapon;
+	EquippedWeapon = SecondaryWeapon;
+	SecondaryWeapon = TempWeapon;
+
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachedWeapon(EquippedWeapon, FName("s_weapon"));
+	EquippedWeapon->SetAmmoHUD();
+	SetCarriedAmmoHUD();
+	
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	FName SocketName = SetSockedName(SecondaryWeapon->GetWeaponType());
+	AttachedWeapon(SecondaryWeapon, SocketName);
+}
+
+void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
+{
+	if (!WeaponToEquip) return;
 
 	if (EquippedWeapon)
 	{
@@ -61,14 +90,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	EquippedWeapon->SetAmmoHUD();
 
+	AttachedWeapon(WeaponToEquip, FName("s_weapon"));
+
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
 		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
-	}
-
-	if (EquippedWeapon->EquippedSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquippedSound, Character->GetActorLocation());
 	}
 
 	if (EquippedWeapon->IsEmpty())
@@ -78,14 +104,55 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	 
 	SetCarriedAmmoHUD();
 
-	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("s_weapon"));
-	if (HandSocket)
+}
+
+void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
+{
+	if (!WeaponToEquip) return;
+
+	SecondaryWeapon = WeaponToEquip;
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	FName SocketName = SetSockedName(SecondaryWeapon->GetWeaponType());
+	AttachedWeapon(WeaponToEquip, SocketName);
+}
+
+FName UCombatComponent::SetSockedName(EWeaponType Type)
+{
+	FName SocketName;
+
+	switch (Type)
 	{
-		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+	case EWeaponType::EWT_Pistol:
+	case EWeaponType::EWT_MashineGun:
+		SocketName = "PistolSocket";
+		break;
+	case EWeaponType::EWT_AssultRifle:
+		SocketName = "MiddleWeaponSocked";
+		break;
+	case EWeaponType::EWT_RocketLauncher:
+		SocketName = "HeaveWeaponSocket";
+		break;
 	}
 
-	EquippedWeapon->SetOwner(Character);
+	return SocketName;
 }
+
+void UCombatComponent::AttachedWeapon(AWeapon* WeaponToEquip, FName SockedName)
+{
+	if (WeaponToEquip->EquippedSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, WeaponToEquip->EquippedSound, Character->GetActorLocation());
+	}
+
+	const USkeletalMeshSocket* WeaponSocket = Character->GetMesh()->GetSocketByName(SockedName);
+	if (WeaponSocket)
+	{
+		WeaponSocket->AttachActor(WeaponToEquip, Character->GetMesh());
+	}
+
+	WeaponToEquip->SetOwner(Character);
+}
+
 
 void UCombatComponent::SetAiming(const bool bIsAiming)
 {
@@ -113,6 +180,11 @@ void UCombatComponent::Fire()
 			StartFireTimer();
 		}
 	}
+}
+
+bool UCombatComponent::ShoodSwapWeapons()
+{
+	return EquippedWeapon && SecondaryWeapon;
 }
 
 void UCombatComponent::StartFireTimer()

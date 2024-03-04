@@ -58,23 +58,25 @@ void AWeapon::BeginPlay()
 
 void AWeapon::OnSphereOverlap(class UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	OwnerCharacter = Cast<AMainCharacter>(OtherActor);
-
-	if (OwnerCharacter && PickupWidget)
+	if (OtherActor->IsA(AMainCharacter::StaticClass()))
 	{
-		ShowPickupWidget(true);
-		OwnerCharacter->SetOverlappingWeapon(this);
+		OwnerCharacter = Cast<AMainCharacter>(OtherActor);
+
+		if (OwnerCharacter && PickupWidget)
+		{
+			ShowPickupWidget(true);
+			OwnerCharacter->SetOverlappingWeapon(this);
+		}
 	}
 }
 
 void AWeapon::OnEndSphereOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-
 	if (OwnerCharacter && PickupWidget)
 	{
 		ShowPickupWidget(false);
 		OwnerCharacter->SetOverlappingWeapon(nullptr);
-		//OwnerCharacter = nullptr;
+		OwnerCharacter = nullptr;
 	}
 }
 
@@ -97,6 +99,13 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	switch(WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		PickupCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_EquippedSecondary:
 		ShowPickupWidget(false);
 		PickupCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		WeaponMesh->SetSimulatePhysics(false);
@@ -168,7 +177,13 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
-	OwnerCharacter = nullptr;
+	
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->SetOverlappingWeapon(nullptr);
+		OwnerCharacter = nullptr;
+	}
+
 	PlayerController = nullptr;
 }
 

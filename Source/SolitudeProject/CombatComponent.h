@@ -31,6 +31,9 @@ private:
 	AWeapon* EquippedWeapon = nullptr;
 
 	UPROPERTY(Transient)
+	AWeapon* SecondaryWeapon = nullptr;
+
+	UPROPERTY(Transient)
 	ABasePlayerController* PlayerController = nullptr;
 
 	bool bAiming = false;
@@ -66,6 +69,14 @@ private:
 
 	//void SetCombatState();
 
+	void AttachedWeapon(AWeapon* WeaponToEquip, FName SockedName);
+
+	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
+
+	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
+
+	FName SetSockedName(EWeaponType Type);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -88,6 +99,8 @@ public:
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
+	void SwapWeapon();
+
 	void SetCarriedAmmoHUD();
 	
 	void Reload();
@@ -103,5 +116,5 @@ public:
 
 	void Fire();
 
-
+	bool ShoodSwapWeapons();
 };

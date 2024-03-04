@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CameraParamInterface.h"
 #include "FollowCamera.generated.h"
 
 class USpringArmComponent;
@@ -11,7 +12,7 @@ class UCameraComponent;
 class AMainCharacter;
 
 UCLASS()
-class SOLITUDEPROJECT_API AFollowCamera : public AActor
+class SOLITUDEPROJECT_API AFollowCamera : public AActor, public ICameraParamInterface
 {
 	GENERATED_BODY()
 	
@@ -46,4 +47,7 @@ public:
 	void UpdateCameraPos(const FVector& FollowTargetLocation);
 
 	FORCEINLINE void SetCamDirection(const float CamDirection) { CameraDirection = CamDirection; }
+
+	UFUNCTION()
+	virtual void SetCameraNewParam_Implementation(float ArmLenght, float LocationZ, float Offset) override;
 };

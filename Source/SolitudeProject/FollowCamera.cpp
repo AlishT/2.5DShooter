@@ -2,6 +2,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "MainCharacter.h"
+#include "CameraParamInterface.h"
 
 AFollowCamera::AFollowCamera()
 {
@@ -41,5 +42,17 @@ void AFollowCamera::UpdateCameraPos(const FVector& FollowTargetLocation)
 	FVector UpdatedLocation = Location + Offset * CameraDirection;
 
 	SetActorLocation(UpdatedLocation);
+}
+
+void AFollowCamera::SetCameraNewParam_Implementation(float ArmLenght, float LocationZ, float Offset)
+{
+	CameraBoom->TargetArmLength = ArmLenght;
+
+	CamOffset = Offset;
+
+	FVector Location = FVector(0.f, 0.f, LocationZ);
+
+	PlayerCamera->SetRelativeLocation(Location);
+
 }
 

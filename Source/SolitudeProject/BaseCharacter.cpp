@@ -37,6 +37,10 @@ ABaseCharacter::ABaseCharacter()
 		Movement->bConstrainToPlane = true;
 		Movement->SetPlaneConstraintNormal(FVector(0.f, 1.f, 0.f));
 	}
+
+	GrenadeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrenadeMesh"));
+	GrenadeMesh->SetupAttachment(GetMesh(), FName("s_grenade"));
+	GrenadeMesh->SetVisibility(false);
 }
 
 void ABaseCharacter::BeginPlay()
@@ -51,6 +55,7 @@ void ABaseCharacter::BeginPlay()
 		AWeapon* EnemyWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass, GetActorLocation(), GetActorRotation(), SpawnParams);
 
 		CombatComponent->EquipWeapon(EnemyWeapon);
+		CombatComponent->HidePrimaryWeapon();
 	}
 }
 
@@ -59,16 +64,6 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//AimOffset(DeltaTime);
-
-	if (bEliminated)
-	{
-		CurrentTime += DeltaTime;
-
-		if (CurrentTime >= BodyLifeTime)
-		{
-			Destroy();
-		}
-	}
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -86,6 +81,10 @@ void ABaseCharacter::HealthChanged(float Health, float Armor)
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
 		CombatComponent->EquippedWeapon->Dropped();
+	}
+	else if (CombatComponent && CombatComponent->GetHiddenWeapon())
+	{
+		CombatComponent->GetHiddenWeapon()->Dropped();
 	}
 
 	bEliminated = true;
@@ -156,6 +155,27 @@ void ABaseCharacter::PlayHitReactMontage()
 		FName SectionName = FName("FromFromt");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
+}
+
+void ABaseCharacter::PlayGrenadeMontage()
+{
+	if (!CombatComponent && !GrenadeMontage) return;
+	
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && GrenadeMontage)
+	{
+		AnimInstance->Montage_Play(GrenadeMontage);
+		//FName SectionName = FName("Grenade");
+		//AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABaseCharacter::SetGrenadeMeshVisible(bool bVisible) const
+{
+	if (!GrenadeMesh) return;
+
+	GrenadeMesh->SetVisibility(bVisible);
 }
 
 AWeapon* ABaseCharacter::GetEquippedWeapon() const

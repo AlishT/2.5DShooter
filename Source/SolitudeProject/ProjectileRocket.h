@@ -6,6 +6,7 @@
 #include "Projectile.h"
 #include "ProjectileRocket.generated.h"
 
+class UNiagaraSystem;
 /**
  * 
  */
@@ -15,16 +16,24 @@ class SOLITUDEPROJECT_API AProjectileRocket : public AProjectile
 	GENERATED_BODY()
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "Defauult")
-	float MinDamage = 10.f;
+	//UPROPERTY(EditDefaultsOnly, Category = "Default")
+	//UNiagaraSystem* TrailSystem = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Defauult")
-	float DamageInnerRadius = 500.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	USoundCue* Rockedloop = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Defauult")
-	float DamageOuterRadius = 200.f;
+	UPROPERTY(Transient)
+	UAudioComponent* RockedLoopComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	USoundAttenuation* LoopingSoundAttenuation = nullptr;
+
+	//UPROPERTY(EditDefaultsOnly, Category = "Default")
+	//UNiagaraSystem* Expolosion;
 
 protected:
+	virtual void BeginPlay() override;
+
 	//UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 };

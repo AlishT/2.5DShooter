@@ -11,6 +11,7 @@
 class AWeapon;
 class ABaseCharacter;
 class ABasePlayerController;
+class AProjectile;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SOLITUDEPROJECT_API UCombatComponent : public UActorComponent
@@ -34,8 +35,12 @@ private:
 	AWeapon* SecondaryWeapon = nullptr;
 
 	UPROPERTY(Transient)
+	AWeapon* HiddenWeapon = nullptr;
+
+	UPROPERTY(Transient)
 	ABasePlayerController* PlayerController = nullptr;
 
+	UPROPERTY()
 	bool bAiming = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "WalkSpeed")
@@ -44,12 +49,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "WalkSpeed")
 	float AimWalkSpeed = 300.f;
 
+	UPROPERTY()
 	bool bCanFire = true;
 
+	UPROPERTY()
 	float CurrentTime = 0.f;
 
+	UPROPERTY()
 	int32 CarriedAmmo = 60;
 
+	UPROPERTY(Transient)
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	UPROPERTY(EditDefaultsOnly, Category = "CarriedAmmo")
@@ -66,6 +75,9 @@ private:
 
 	UPROPERTY()
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GrenateClass")
+	TSubclassOf<AProjectile> GrenadeProjectileClass;
 
 	//void SetCombatState();
 
@@ -96,10 +108,17 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+	FORCEINLINE AWeapon* GetHiddenWeapon() const { return HiddenWeapon; }
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
 	void SwapWeapon();
+
+	void HidePrimaryWeapon();
+
+	void TakeHiddenWeapon();
+
+	void SetAmmoHUD();
 
 	void SetCarriedAmmoHUD();
 	
@@ -107,14 +126,22 @@ public:
 
 	int32 AmountToReloaud();
 
+	bool IsCarriedAmmo(EWeaponType Type);
+
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishGrenadeThrow();
 		
 	void SetAiming(const bool bIsAiming);
 
 	bool GetAiming() const;
-
+	
+	UFUNCTION(BlueprintCallable)
 	void Fire();
+
+	void UseGrenade();
 
 	bool ShoodSwapWeapons();
 };

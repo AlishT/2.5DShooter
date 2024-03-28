@@ -3,6 +3,7 @@
 
 #include "CombatComponent.h"
 #include "Weapon.h"
+#include "Projectile.h"
 #include "BaseCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
@@ -50,6 +51,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	Character = Cast<ABaseCharacter>(GetOwner());
 
 	if (!WeaponToEquip || !Character) return;
+	if (CombatState != ECombatState::ECS_Unoccupied)  return;
 	
 	if (EquippedWeapon && !SecondaryWeapon)
 	{
@@ -69,12 +71,37 @@ void UCombatComponent::SwapWeapon()
 
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	AttachedWeapon(EquippedWeapon, FName("s_weapon"));
-	EquippedWeapon->SetAmmoHUD();
+	
+	SetAmmoHUD();
 	SetCarriedAmmoHUD();
 	
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	FName SocketName = SetSockedName(SecondaryWeapon->GetWeaponType());
 	AttachedWeapon(SecondaryWeapon, SocketName);
+}
+
+void UCombatComponent::HidePrimaryWeapon()
+{
+	if (!EquippedWeapon) return;
+
+	if(HiddenWeapon && !SecondaryWeapon)
+	{
+		SecondaryWeapon = HiddenWeapon;
+		EquipSecondaryWeapon(SecondaryWeapon);
+	}
+
+	HiddenWeapon = EquippedWeapon;
+
+	FName SockedName = SetSockedName(HiddenWeapon->GetWeaponType());
+	AttachedWeapon(HiddenWeapon, SockedName);
+	EquippedWeapon = nullptr;
+}
+
+void UCombatComponent::TakeHiddenWeapon()
+{
+	EquippedWeapon = HiddenWeapon;
+	AttachedWeapon(EquippedWeapon, FName("s_weapon"));
+	HiddenWeapon = nullptr;
 }
 
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
@@ -88,7 +115,7 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	EquippedWeapon->SetAmmoHUD();
+	SetAmmoHUD();
 
 	AttachedWeapon(WeaponToEquip, FName("s_weapon"));
 
@@ -182,6 +209,21 @@ void UCombatComponent::Fire()
 	}
 }
 
+void UCombatComponent::UseGrenade()
+{
+	if (CombatState == ECombatState::ECS_Unoccupied && bCanFire)
+	{
+
+		CombatState = ECombatState::ECS_UsingGrenade;
+
+		if (Character)
+		{
+			Character->PlayGrenadeMontage();
+			Character->SetGrenadeMeshVisible(true);
+		}
+	}
+}
+
 bool UCombatComponent::ShoodSwapWeapons()
 {
 	return EquippedWeapon && SecondaryWeapon;
@@ -209,6 +251,7 @@ void UCombatComponent::FireTimerFinished()
 		Reload();
 	}
 
+	SetAmmoHUD();
 }
 
 void UCombatComponent::IntializeCarriedAmmo()
@@ -221,7 +264,11 @@ void UCombatComponent::IntializeCarriedAmmo()
 
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmo > 0 && EquippedWeapon && !EquippedWeapon->IsFullCapasity() && CombatState != ECombatState::ECS_Reloading)
+	if (!EquippedWeapon) return;
+
+	bool bCarriedAmmo = IsCarriedAmmo(EquippedWeapon->GetWeaponType());
+
+	if (bCarriedAmmo && EquippedWeapon && !EquippedWeapon->IsFullCapasity() && CombatState == ECombatState::ECS_Unoccupied && bCanFire)
 	{
 		if (!Character) return;
 
@@ -246,12 +293,39 @@ int32 UCombatComponent::AmountToReloaud()
 	return 0;
 }
 
+bool UCombatComponent::IsCarriedAmmo(EWeaponType Type)
+{
+	return CarriedAmmoMap[Type] > 0;
+}
+
 void UCombatComponent::FinishReloading()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
 
 	UpdateAmmoValue();
 	bCanFire = true;
+}
+
+void UCombatComponent::FinishGrenadeThrow()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	
+	if (Character)
+	{
+		Character->SetGrenadeMeshVisible(false);
+
+		if (GrenadeProjectileClass)
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = Character;
+			SpawnParams.Instigator = Character;
+
+			FVector GrenadeStartLocation = Character->GetAttchedGrenade()->GetComponentLocation();
+			FVector GrenadeTargetLocation = Character->GetHitTarget() - GrenadeStartLocation;
+			
+			GetWorld()->SpawnActor<AProjectile>(GrenadeProjectileClass, GrenadeStartLocation, GrenadeTargetLocation.Rotation(), SpawnParams);
+		}
+	}
 }
 
 void UCombatComponent::UpdateAmmoValue()
@@ -263,8 +337,25 @@ void UCombatComponent::UpdateAmmoValue()
 	{
 		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= ReloadAmount;
 	}
+	
 	EquippedWeapon->AddAmmo(-ReloadAmount);
+	
+	SetAmmoHUD();
 	SetCarriedAmmoHUD();
+}
+
+void UCombatComponent::SetAmmoHUD()
+{
+	if (Character)
+	{
+		PlayerController = (!PlayerController) ? Character->GetController<ABasePlayerController>() : PlayerController;
+
+		if (PlayerController && EquippedWeapon)
+		{
+			PlayerController->SetHUDWeaponAmmo(EquippedWeapon->GetAmmo());
+		}
+	}
+
 }
 
 void UCombatComponent::SetCarriedAmmoHUD()

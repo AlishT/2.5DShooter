@@ -34,10 +34,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Default")
 	float NewCameraOffset = 0.f;
 
-	float DefaultArmLenght = 900.f;
+	UPROPERTY()
+	float DefaultArmLenght = 1000.f;
 
-	float DefaultCameraLocationZ = 150.f;
+	UPROPERTY()
+	float DefaultCameraLocationZ = 200.f;
 
+	UPROPERTY()
 	float DefaultOffset = 25;
 
 	virtual void BeginPlay() override;

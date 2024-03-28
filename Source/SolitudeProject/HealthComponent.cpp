@@ -58,18 +58,18 @@ void UHealthComponent::OnTakeDamage(AActor* DamagedActor, float Damage, const UD
 
 	if (CurrentArmor <= 0 && DeltaDamage == 0)
 	{
-		CurrentHealth -= Damage;
+		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0, MaxHealth);
 	}
 
 	CurrentArmor = FMath::Clamp(CurrentArmor - Damage, 0, MaxArmor);
 
 	UpdateHUDStates();
 
-	if (DamagedActor)
+	if (DamageCauser)
 	{
 		if (BloodPartical)
 		{
-			FVector ProgectileLocation = DamagedActor->GetActorLocation();
+			FVector ProgectileLocation = DamageCauser->GetActorLocation();
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodPartical, ProgectileLocation);
 		}
 	}

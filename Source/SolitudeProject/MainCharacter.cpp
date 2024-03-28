@@ -70,6 +70,7 @@ void AMainCharacter::Tick(float DeltaTime)
 	if (FollowCamera)
 	{
 		FollowCamera->UpdateCameraPos(GetActorLocation());
+		//FollowCamera->AimChacked(false);
 	}
 
 	FHitResult HitRes = FHitResult();
@@ -93,7 +94,7 @@ void AMainCharacter::Tick(float DeltaTime)
 		if (CombatComponent)
 		{
 			CombatComponent->SetAiming(false);
-		
+
 			if (CombatComponent->GetEquippedWeapon())
 			{
 				CombatComponent->GetEquippedWeapon()->SetTarget(HitRes.GetActor());
@@ -116,9 +117,10 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AMainCharacter::StopJumping);
 		PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AMainCharacter::Crouching);
 		PlayerEnhancedInputComponent->BindAction(WeaponEquipAction, ETriggerEvent::Triggered, this, &AMainCharacter::EquipWeapon);
-		PlayerEnhancedInputComponent->BindAction(DroppedWeaponAction, ETriggerEvent::Triggered, this, &AMainCharacter::DroppedWeapon);
+		PlayerEnhancedInputComponent->BindAction(HideWeaponAction, ETriggerEvent::Triggered, this, &AMainCharacter::HideWeapon);
 		PlayerEnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AMainCharacter::Fire);
 		PlayerEnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AMainCharacter::Aiming);
+		PlayerEnhancedInputComponent->BindAction(GrenadeAction, ETriggerEvent::Triggered, this, &AMainCharacter::UseGrenade);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AMainCharacter::Sprint);
 		PlayerEnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AMainCharacter::Reload);
 	}
@@ -135,12 +137,11 @@ void AMainCharacter::Move(const FInputActionValue& Value)
 		//FVector Forward = FVector::ForwardVector * DirectionValue;
 		AddMovementInput(Direction, DirectionValue);
 
-		if (!IsAiming())
+		if (FollowCamera)
 		{
 			FollowCamera->SetCamDirection(DirectionValue);
 		}
-		
-		//UE_LOG(LogTemp, Warning, TEXT("Direction Value %f"), DirectionValue);
+		UE_LOG(LogTemp, Warning, TEXT("Direction Value %f"), DirectionValue);
 	}
 }
 
@@ -182,11 +183,16 @@ void AMainCharacter::EquipWeapon()
 	//bEquipWeapon = bEquip;
 }
 
-void AMainCharacter::DroppedWeapon()
+void AMainCharacter::HideWeapon()
 {
 	if (CombatComponent && CombatComponent->GetEquippedWeapon())
 	{
-		CombatComponent->GetEquippedWeapon()->Dropped();
+		//CombatComponent->GetEquippedWeapon()->Dropped();
+		CombatComponent->HidePrimaryWeapon();
+	}
+	else if (CombatComponent && CombatComponent->GetHiddenWeapon())
+	{
+		CombatComponent->TakeHiddenWeapon();
 	}
 }
 
@@ -195,6 +201,8 @@ void AMainCharacter::Fire()
 	if (IsWeaponEquipeed())
 	{
 		CombatComponent->Fire();
+		
+		MakeNoise(1.f, this, GetActorLocation(), 0.f);
 	}
 }
 
@@ -205,6 +213,9 @@ void AMainCharacter::Aiming()
 		CombatComponent->SetAiming(true);
 		if (!CombatComponent->GetEquippedWeapon()) return;
 		CombatComponent->GetEquippedWeapon()->bAiming = true;
+		
+		//if (!FollowCamera) return;
+		//FollowCamera->AimChacked(true);
 	}
 }
 
@@ -225,6 +236,14 @@ void AMainCharacter::Reload()
 	if (CombatComponent) 
 	{
 		CombatComponent->Reload();
+	}
+}
+
+void AMainCharacter::UseGrenade()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->UseGrenade();
 	}
 }
 

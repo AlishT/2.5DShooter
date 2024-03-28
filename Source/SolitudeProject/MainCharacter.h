@@ -44,7 +44,7 @@ protected:
 	class UInputAction* WeaponEquipAction = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
-	class UInputAction* DroppedWeaponAction = nullptr;
+	class UInputAction* HideWeaponAction = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputAction* FireAction = nullptr;
@@ -57,6 +57,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
 	class UInputAction* ReloadAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
+	class UInputAction* GrenadeAction = nullptr;
 	
 	UPROPERTY(Transient)
 	AWeapon* PickapedWeapom = nullptr;
@@ -76,7 +79,7 @@ protected:
 	UFUNCTION()
 	void EquipWeapon();
 	UFUNCTION()
-	void DroppedWeapon();
+	void HideWeapon();
 	UFUNCTION()
 	void Fire();
 	UFUNCTION()
@@ -87,6 +90,8 @@ protected:
 	void ToJump();
 	UFUNCTION()
 	void Reload();
+	UFUNCTION()
+	void UseGrenade();
 	
 	UFUNCTION()
 	void RotateCharacter();

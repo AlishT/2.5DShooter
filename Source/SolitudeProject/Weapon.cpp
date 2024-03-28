@@ -17,6 +17,7 @@
 #include "BasePlayerController.h"
 #include "TimerManager.h"
 #include "BasePlayerController.h"
+#include "FollowCamera.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -64,8 +65,17 @@ void AWeapon::OnSphereOverlap(class UPrimitiveComponent* OverlappedComponent, AA
 
 		if (OwnerCharacter && PickupWidget)
 		{
-			ShowPickupWidget(true);
-			OwnerCharacter->SetOverlappingWeapon(this);
+			AFollowCamera* PlayerCamera = OwnerCharacter->GetFollowCamera();
+			
+			if (PlayerCamera)
+			{
+				FVector WidgetLocation = PlayerCamera->GetCameraLocation() - PickupWidget->GetComponentLocation();
+				FRotator WidgetRotation = WidgetLocation.Rotation();
+
+				PickupWidget->SetWorldRotation(WidgetRotation);
+				ShowPickupWidget(true);
+				OwnerCharacter->SetOverlappingWeapon(this);
+			}
 		}
 	}
 }
@@ -153,14 +163,18 @@ void AWeapon::Shoot(const FVector& HitTarget)
 		FVector StartLocation = ProjectileTransform.GetLocation();
 		FVector ToTarget = HitTarget - StartLocation;
 
-		FRotator TatgetRotation = (bAiming) ? ToTarget.Rotation() : GetActorRotation();
+		FRotator TargetRotation = (bAiming) ? ToTarget.Rotation() : WeaponMesh->GetSocketRotation(FName("MuzzleFlash"));
 
-		AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, StartLocation, TatgetRotation, SpawnParams);
+		AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, StartLocation, TargetRotation, SpawnParams);
 
-		if (!bAiming)
+		MuzzleScatter = DefMuzzleScatter;
+
+		if (bAiming) MuzzleScatter /= AimScatterDivider;
+
+		if (Projectile)
 		{
 			float DirectionError = FMath::RandRange(-MuzzleScatter, MuzzleScatter);
-			FVector LaunchDirection = GetActorRightVector() + MuzzleScatter;
+			FVector LaunchDirection = TargetRotation.Vector() + DirectionError;
 				Projectile->FireInDirection(LaunchDirection);
 		}
 
@@ -177,6 +191,7 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	ShowPickupWidget(false);
 	
 	if (OwnerCharacter)
 	{
@@ -190,29 +205,16 @@ void AWeapon::Dropped()
 void AWeapon::SpendAmmo()
 {
 	Ammo = FMath::Clamp(--Ammo, 0, MagCapasity);
-
-	SetAmmoHUD();
 }
 
 void AWeapon::AddAmmo(int32 AmmoToAdd)
 {
 	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapasity);
-	SetAmmoHUD();
 }
 
 int32 AWeapon::GetRoomInMag()
 {
 	return MagCapasity - Ammo;
-}
-
-void AWeapon::SetAmmoHUD()
-{
-	PlayerController = Cast<ABasePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	
-	if (PlayerController)
-	{
-		PlayerController->SetHUDWeaponAmmo(Ammo);
-	}
 }
 
 bool AWeapon::IsEmpty()

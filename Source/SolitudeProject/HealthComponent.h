@@ -29,11 +29,13 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Default")
 	float MaxHealth = 100.f;
 
+	UPROPERTY()
 	float CurrentHealth = 0.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Default")
 	float MaxArmor = 100.f;
 
+	UPROPERTY()
 	float CurrentArmor = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Default")

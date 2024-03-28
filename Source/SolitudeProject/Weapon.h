@@ -64,8 +64,15 @@ private:
 	USoundCue* ShootSound = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	float DefMuzzleScatter = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	float AimScatterDivider = 0.f;
+
+	UPROPERTY()
 	float MuzzleScatter = 0.f;
 
+	UPROPERTY()
 	int32 Ammo = 0;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
@@ -94,6 +101,7 @@ protected:
 	virtual void OnEndSphereOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:	
+	UPROPERTY()
 	bool bAiming = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
@@ -121,8 +129,6 @@ public:
 	void AddAmmo(int32 AmmoToAdd);
 
 	int32 GetRoomInMag();
-	
-	void SetAmmoHUD();
 
 	bool IsEmpty();
 
@@ -133,6 +139,7 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 	FORCEINLINE void SetTarget(AActor* Target) { WeponTarget = Target; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 
 	//FORCEINLINE bool IsPistol() const { return bPistol; }
 

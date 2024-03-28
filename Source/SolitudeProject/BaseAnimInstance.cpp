@@ -7,6 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Weapon.h"
 #include "CombatState.h"
+#include "EnemyCharacter.h"
 
 void UBaseAnimInstance::NativeInitializeAnimation()
 {
@@ -25,7 +26,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DealtaTime)
 	if (BaseCharacter)
 	{
 		//Get the lateral speed of the character from velocity
-		FVector Velocity = BaseCharacter->GetVelocity();
+		Velocity = BaseCharacter->GetVelocity();
 		Velocity.Z = 0.f;
 		//Velocity.Y = 0.f;
 		Speed = Velocity.Size();
@@ -41,7 +42,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DealtaTime)
 
 		//Is the character accelerating?
 		float Acceleration = BaseCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size();
-		bIsAccelerating = (Acceleration > 0) ? true : false;
+		bIsAccelerating = (Acceleration > 0 && Speed > 3.f) ? true : false;
 
 		//Set movemntOffset
 		FRotator AimRotetion = BaseCharacter->GetBaseAimRotation();
@@ -75,7 +76,8 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DealtaTime)
 			FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));*/
 		}
 
-		bUseFABRIK = BaseCharacter->GetCombatState() != ECombatState::ECS_Reloading;
-		bUseAimOffset = BaseCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+		bUseFABRIK = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
+		bUseAimOffset = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
+		bUseRightHandTrans = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
 	}
 }

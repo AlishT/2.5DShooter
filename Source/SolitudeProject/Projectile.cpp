@@ -10,6 +10,7 @@
 #include "Sound/SoundCue.h"
 #include "BaseCharacter.h"
 #include "SolitudeProject.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -36,8 +37,7 @@ AProjectile::AProjectile()
 	ProjectileMovement->InitialSpeed = 3000.0f;
 	ProjectileMovement->MaxSpeed = 3000.0f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = true;
-	ProjectileMovement->Bounciness = 0.3f;
+	ProjectileMovement->bShouldBounce = false;
 	ProjectileMovement->ProjectileGravityScale = 0.0f;
 
 	InitialLifeSpan = 0.3f;
@@ -53,6 +53,16 @@ void AProjectile::BeginPlay()
 	if (Tracer)
 	{
 		TracerComponent = UGameplayStatics::SpawnEmitterAttached(Tracer, CollisionBox, FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition);
+	}
+
+	if (TrailSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(TrailSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
+	}
+
+	if (TracerSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(TracerSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
 	}
 
 }

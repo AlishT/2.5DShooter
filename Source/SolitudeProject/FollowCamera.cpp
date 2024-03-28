@@ -16,7 +16,6 @@ AFollowCamera::AFollowCamera()
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	PlayerCamera->bUsePawnControlRotation = false;
-
 }
 
 void AFollowCamera::BeginPlay()
@@ -48,7 +47,7 @@ void AFollowCamera::SetCameraNewParam_Implementation(float ArmLenght, float Loca
 {
 	CameraBoom->TargetArmLength = ArmLenght;
 
-	CamOffset = Offset;
+	CamOffset = Offset; 
 
 	FVector Location = FVector(0.f, 0.f, LocationZ);
 

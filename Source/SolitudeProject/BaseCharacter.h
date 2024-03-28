@@ -29,16 +29,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Default")
 	UCombatComponent* CombatComponent = nullptr;
 
+	UPROPERTY()
 	FVector TargetLocation = FVector::ZeroVector;
 
 	virtual void BeginPlay() override;
 
 	void AimOffset(float DelataTime);
 
+	UPROPERTY()
 	float AO_Yaw = 0.f;
 	
+	UPROPERTY()
 	float AO_Pitch = 0.f;
 	
+	UPROPERTY()
 	FRotator StartingAimRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, Category = "Default")
@@ -52,17 +56,27 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ReloadMontage = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GrenadeMontage = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
 	class UAnimationAsset* EliminatedAnim = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	UStaticMeshComponent* GrenadeMesh = nullptr;
+
+	UPROPERTY()
 	float CurrentTime = 0.f;
+	
+	UPROPERTY()
 	float BodyLifeTime = 3.0f;
 	
+	UPROPERTY()
 	bool bEliminated = false;
 
 public:	
-
+	UPROPERTY()
 	bool bSprinting = false;
 
 	virtual void Tick(float DeltaTime) override;
@@ -82,11 +96,15 @@ public:
 
 	void PlayHitReactMontage();
 
-	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
-	
-	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
+	void PlayGrenadeMontage();
 
-	FORCEINLINE FVector GetHitTarget() const { return TargetLocation; };
+	void SetGrenadeMeshVisible(bool bVisible) const;
+
+	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
+	FORCEINLINE FVector GetHitTarget() const { return TargetLocation; }
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE UStaticMeshComponent* GetAttchedGrenade() const { return GrenadeMesh; }
 
 	AWeapon* GetEquippedWeapon() const;
 

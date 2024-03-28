@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Camera/CameraComponent.h"
 #include "CameraParamInterface.h"
 #include "FollowCamera.generated.h"
 
 class USpringArmComponent;
-class UCameraComponent;
 class AMainCharacter;
 
 UCLASS()
@@ -19,7 +19,7 @@ class SOLITUDEPROJECT_API AFollowCamera : public AActor, public ICameraParamInte
 public:	
 	// Sets default values for this actor's properties
 	AFollowCamera();
-
+	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
 	USpringArmComponent* CameraBoom = nullptr;
@@ -33,9 +33,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
 	float CamOffset = 0.f;
 
+	UPROPERTY()
 	float CameraDeltaTime = 0.02f;
 
+	UPROPERTY()
 	float CameraDirection = 0.f;
+
+	UPROPERTY()
+	bool bAiming = false;
 
 protected:
 	virtual void BeginPlay() override;
@@ -48,6 +53,10 @@ public:
 
 	FORCEINLINE void SetCamDirection(const float CamDirection) { CameraDirection = CamDirection; }
 
+	FORCEINLINE void AimChacked(bool bIsAiming) { bAiming = bIsAiming; }
+
 	UFUNCTION()
 	virtual void SetCameraNewParam_Implementation(float ArmLenght, float LocationZ, float Offset) override;
+
+	FORCEINLINE FVector GetCameraLocation() const { return PlayerCamera->GetComponentLocation(); }
 };
